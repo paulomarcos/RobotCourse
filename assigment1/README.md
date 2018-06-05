@@ -4,18 +4,18 @@
 * The lenght: longer than 1 minute
 * Method: no restriction, i.e: using physical simulator, writing a program to generate it, using software to generate animation
 * Submit the video and presentation slides
-** The deadline is 23:59 14th June, 2018
+	* The deadline is 23:59 14th June, 2018
 
 
 ### Presentation
 
 * 15th June (and 22nd June)
-• Prepare 5 min presentation in English
-** Show the video
-** Explain a cover story for the video.
-** Explain what intentional behaviors we can observe.
-** Shows the point of how you want me to evaluate the video.
-** Show the video again.
+* Prepare 5 min presentation in English
+	* Show the video
+	* Explain a cover story for the video.
+	* Explain what intentional behaviors we can observe.
+	* Shows the point of how you want me to evaluate the video.
+	* Show the video again.
 
 -----
 
