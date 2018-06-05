@@ -73,12 +73,23 @@ robot.speed(0)
 robot.setposition(0,-250)
 
 # Create apple
-apple = turtle.Turtle()
-apple.color("red")
-apple.shape("circle")
-apple.penup()
-apple.speed(0)
-apple.setposition(45, 250)
+
+colors = ['white', 'orange', 'red']
+
+NUMBER_APPLES = 3
+apples = []
+for i in range(NUMBER_APPLES):
+	apples.append(turtle.Turtle())
+	
+for apple in apples:	
+	apple.color(colors[i])
+	apple.shape("circle")
+	apple.penup()
+	apple.speed(0)
+	randomY = random.randint(-350, 350)
+	randomX = random.randint(-350, 350)
+	apple.setposition(randomX, randomY)
+
 
 # Move robot left
 def move_left():
@@ -130,12 +141,12 @@ def print_text(hunger, intention_idx, goal, robotpos):
 
 
 # Find Apple
-def find_apple(robot, apple, goal, smell_sense):
-	if robot.distance(apple) <= smell_sense/2:
-		goal = [apple.xcor(), apple.ycor(), 0]
-		robot.color("purple")
+def find_apple(robot, apples, goal, smell_sense):
+	for apple in apples:
+		if robot.distance(apple) <= smell_sense/2:
+			goal = [apple.xcor(), apple.ycor(), 0]
+			robot.color("purple")
 	return goal
-
 
 # Action for intentions
 def free_walk(robotpos, foodsense):
@@ -169,19 +180,19 @@ def find_food(robotpos, foodsense):
 	idle = 0
 	x_pos, y_pos = robotpos
 	foodsense.shapesize(MAX_RADIUS / STAMP_SIZE)
-	if direction == 1:
+	if direction == 1:   # UP
 		y_pos += distance
 		if y_pos > 380:
 			y_pos = 380
-	elif direction == 3:
+	elif direction == 3: # DOWN
 		y_pos -= distance
 		if y_pos < -380:
 			y_pos = -380
-	elif direction == 2:
+	elif direction == 2: # RIGHT
 		x_pos += distance
 		if x_pos > 380:
 			x_pos = 380
-	else:
+	else: 				 # LEFT
 		x_pos -= distance
 		if x_pos < -380:
 			x_pos = -380
@@ -189,16 +200,25 @@ def find_food(robotpos, foodsense):
 	return goal
 
 def eat(hunger):
-	new_y = random.randint(-380, 380)
-	new_x = random.randint(-380, 380)
-	apple.setposition(new_x, new_y)
+	for apple in apples:
+		if robot.distance(apple) == 0:
+			new_y = random.randint(-380, 380)
+			new_x = random.randint(-380, 380)
+			apple.setposition(new_x, new_y)
 	hunger -= 90
 	if hunger < 0:
 		hunger = 0
 	robot.color("blue")
-	return hunger 		
+	return hunger
+
+def check_collision(apples, robot):
+	for apple in apples:
+		if robot.distance(apple) == 0:
+			return True
+	return False 		
 
 # Initializing positions and intention
+something = 0
 robotpos = [robot.xcor(), robot.ycor()]
 goal = free_walk(robotpos, foodsense)	
 
@@ -207,7 +227,6 @@ goal = free_walk(robotpos, foodsense)
 # Main loop
 while True:
 	robotpos = [robot.xcor(), robot.ycor()]
-	applepos = [apple.xcor(), apple.ycor()]
 	foodsense.setposition(robot.position())
 	
 	# CHECK HUNGER
@@ -225,15 +244,15 @@ while True:
 			reachgoal = False
 	
 	if intention_idx == FINDFOOD and not reachgoal:
-		goal = find_apple(robot, apple, goal, smell_sense = MAX_RADIUS)
+		goal = find_apple(robot, apples, goal, smell_sense = MAX_RADIUS)
 	elif intention_idx == FREEWALK and not reachgoal:
-		goal = find_apple(robot, apple, goal, smell_sense = MIN_RADIUS)		
+		goal = find_apple(robot, apples, goal, smell_sense = MIN_RADIUS)		
 			
 	# MOVE TOWARDS A GOAL or WAIT
 	if robotpos[POSX] == goal[POSX] and robotpos[POSY] == goal[POSY]:
 		if goal[IDLE] > 0:
 			goal[IDLE] -= 1
-			wn.delay(300)
+			wn.delay(3)
 		else:
 			reachgoal = True
 	elif robot.xcor() > goal[POSX]:
@@ -247,7 +266,7 @@ while True:
 			move_up()
 	
 	# UPDATE HUNGER AND INTENTION
-	if hunger > 50 and robotpos == applepos:
+	if check_collision(apples, robot):
 		hunger = eat(hunger)  
 		intention_idx = EAT
 	if intention_idx == FREEWALK:
@@ -260,7 +279,7 @@ while True:
 	# PRINT INFO
 	print_text(hunger, intention_idx, goal, robotpos)
 	
-	wn.delay(100)
+	wn.delay(1)
 
 # Create keyboard bindings
 turtle.listen()
