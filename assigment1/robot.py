@@ -6,6 +6,7 @@
 import turtle
 import os
 import random
+from math import floor
 
 # Constants
 border = -400
@@ -126,8 +127,26 @@ def move_down():
 	if y < -380:
 		y = -380
 	robot.sety(y)
-	
 
+
+# Create print pen
+print_pen = turtle.Turtle()
+print_pen.speed(0)
+print_pen.color("white")
+print_pen.penup()
+print_pen.setposition(-380, 350)
+
+# Text on screen
+def print_text(hunger, intention_idx):
+	print_pen.clear()
+	intention_string = intention[intention_idx]
+	hunger_string = str(int(floor(hunger)))
+	printstring = "Intention: "+intention_string+"\nHunger: "+hunger_string
+	print_pen.write(printstring, False, align="left", font=("Arial", 14, "normal"))
+	print_pen.hideturtle()
+
+
+"""
 # Print text
 def print_text(hunger, intention_idx, goal, robotpos):
 	os.system('cls' if os.name =='nt' else 'clear')
@@ -138,7 +157,7 @@ def print_text(hunger, intention_idx, goal, robotpos):
 	print robotpos
 	print reachgoal
 	print "----------------------------------"
-
+"""
 
 # Find Apple
 def find_apple(robot, apples, goal, smell_sense):
@@ -221,8 +240,9 @@ def check_collision(apples, robot):
 something = 0
 robotpos = [robot.xcor(), robot.ycor()]
 goal = free_walk(robotpos, foodsense)	
+last_state = [0, 0]
 
-
+print_text(hunger, intention_idx)
 	
 # Main loop
 while True:
@@ -252,7 +272,7 @@ while True:
 	if robotpos[POSX] == goal[POSX] and robotpos[POSY] == goal[POSY]:
 		if goal[IDLE] > 0:
 			goal[IDLE] -= 1
-			wn.delay(3)
+			wn.delay(300)
 		else:
 			reachgoal = True
 	elif robot.xcor() > goal[POSX]:
@@ -275,11 +295,14 @@ while True:
 		hunger += 0.005
 	if hunger > 100:
 		hunger = 100
-
+		
 	# PRINT INFO
-	print_text(hunger, intention_idx, goal, robotpos)
+	if (floor(hunger) != floor(last_state[0])) or (intention_idx != last_state[1]) :
+		print_text(hunger, intention_idx)
+				
+	last_state = [hunger, intention_idx]	
 	
-	wn.delay(1)
+	wn.delay(100)
 
 # Create keyboard bindings
 turtle.listen()
@@ -288,22 +311,3 @@ turtle.onkey(move_right, "Right")
 turtle.onkey(move_up, "Up")
 turtle.onkey(move_down, "Down")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-delay = raw_input("Press enter to finish")
