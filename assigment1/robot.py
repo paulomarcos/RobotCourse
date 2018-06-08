@@ -25,7 +25,7 @@ IDLE = 2
 MIN_RADIUS = 80
 MAX_RADIUS = 200
 STAMP_SIZE = 20
-
+REDUCE_HUNGER = 60
 
 # Variables
 intention_idx = 0
@@ -212,15 +212,20 @@ def find_food(robotpos, foodsense):
 	goal = [x_pos, y_pos, idle]
 	return goal
 
-def eat(hunger):
+def eat(hunger, intention_idx):
 	for apple in apples:
 		if robot.distance(apple) == 0:
 			new_y = random.randint(-380, 380)
 			new_x = random.randint(-380, 380)
-			apple.setposition(new_x, new_y)
-	hunger -= 90
-	if hunger < 0:
-		hunger = 0
+			apple.hideturtle()
+			reduce_count = REDUCE_HUNGER
+			while (reduce_count > 1) and hunger > 1:
+				reduce_count -= 1
+				hunger -= 1
+				print_text(hunger, intention_idx)
+				sleep(2.0/REDUCE_HUNGER)
+			apple.setposition(new_x, new_y)	
+			apple.showturtle()
 	return hunger
 
 def check_collision(apples, robot):
@@ -285,8 +290,8 @@ while True:
 	
 	# UPDATE HUNGER AND INTENTION
 	if check_collision(apples, robot):
-		hunger = eat(hunger)  
 		intention_idx = EAT
+		hunger = eat(hunger, intention_idx)  
 	if intention_idx == FREEWALK:
 		hunger += 0.003
 	elif intention_idx == FINDFOOD:
