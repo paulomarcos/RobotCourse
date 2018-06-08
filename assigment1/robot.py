@@ -7,6 +7,7 @@ import turtle
 import os
 import random
 from math import floor
+from time import sleep
 
 # Constants
 border = -400
@@ -39,7 +40,6 @@ wn.tracer(3)
 wn.screensize(800, 800)
 wn.title("Robot")
 
-
 # Draw border
 border_pen = turtle.Turtle()
 border_pen.speed(0)
@@ -55,6 +55,36 @@ for side in range(4):
 border_pen.hideturtle()
 
 
+# Register shapes
+turtle.register_shape("robot_top.gif")
+turtle.register_shape("robot_bot.gif")
+turtle.register_shape("robot_lef.gif")
+turtle.register_shape("robot_rig.gif")
+turtle.register_shape("apple.gif")
+
+# Create the robot
+robot = turtle.Turtle()
+robot.color("blue")
+robot.shape("robot_bot.gif")
+robot.penup()
+robot.speed(0)
+robot.setposition(0,-250)
+
+# Create apple
+NUMBER_APPLES = 3
+apples = []
+for i in range(NUMBER_APPLES):
+	apples.append(turtle.Turtle())
+	
+for apple in apples:	
+	apple.color("red")
+	apple.shape("apple.gif")
+	apple.penup()
+	apple.speed(0)
+	randomY = random.randint(-350, 350)
+	randomX = random.randint(-350, 350)
+	apple.setposition(randomX, randomY)
+	
 # Create food sense
 foodsense = turtle.Turtle()
 foodsense.color("gray14")
@@ -63,38 +93,13 @@ foodsense.penup()
 foodsense.resizemode("user")
 foodsense.speed(0)
 foodsense.shapesize(MIN_RADIUS / STAMP_SIZE)
-foodsense.setposition(0,-250)
-
-# Create the robot
-robot = turtle.Turtle()
-robot.color("blue")
-robot.shape("triangle")
-robot.penup()
-robot.speed(0)
-robot.setposition(0,-250)
-
-# Create apple
-
-colors = ['white', 'orange', 'red']
-
-NUMBER_APPLES = 3
-apples = []
-for i in range(NUMBER_APPLES):
-	apples.append(turtle.Turtle())
-	
-for apple in apples:	
-	apple.color(colors[i])
-	apple.shape("circle")
-	apple.penup()
-	apple.speed(0)
-	randomY = random.randint(-350, 350)
-	randomX = random.randint(-350, 350)
-	apple.setposition(randomX, randomY)
+foodsense.setposition(0,-250)	
 
 
 # Move robot left
 def move_left():
-	robot.setheading(-180)
+	#robot.setheading(-180)
+	robot.shape("robot_lef.gif")
 	x = robot.xcor()
 	x -= robotspeed
 	if x < -380:
@@ -103,7 +108,8 @@ def move_left():
 	
 # Move robot right
 def move_right():
-	robot.setheading(0)
+	#robot.setheading(0)
+	robot.shape("robot_rig.gif")
 	x = robot.xcor()
 	x += robotspeed
 	if x > 380:
@@ -112,7 +118,8 @@ def move_right():
 
 # Move robot up
 def move_up():
-	robot.setheading(90)
+	#robot.setheading(90)
+	robot.shape("robot_top.gif")
 	y = robot.ycor()
 	y += robotspeed
 	if y > 380:
@@ -121,7 +128,8 @@ def move_up():
 
 # Move robot down	
 def move_down():
-	robot.setheading(270)
+	#robot.setheading(270)
+	robot.shape("robot_bot.gif")
 	y = robot.ycor()
 	y -= robotspeed
 	if y < -380:
@@ -146,25 +154,11 @@ def print_text(hunger, intention_idx):
 	print_pen.hideturtle()
 
 
-"""
-# Print text
-def print_text(hunger, intention_idx, goal, robotpos):
-	os.system('cls' if os.name =='nt' else 'clear')
-	print "Intention: " + intention[intention_idx]
-	print "Hunger: " + str(hunger)
-	print "Goal: "
-	print goal
-	print robotpos
-	print reachgoal
-	print "----------------------------------"
-"""
-
 # Find Apple
 def find_apple(robot, apples, goal, smell_sense):
 	for apple in apples:
 		if robot.distance(apple) <= smell_sense/2:
 			goal = [apple.xcor(), apple.ycor(), 0]
-			robot.color("purple")
 	return goal
 
 # Action for intentions
@@ -227,7 +221,6 @@ def eat(hunger):
 	hunger -= 90
 	if hunger < 0:
 		hunger = 0
-	robot.color("blue")
 	return hunger
 
 def check_collision(apples, robot):
@@ -248,7 +241,12 @@ print_text(hunger, intention_idx)
 while True:
 	robotpos = [robot.xcor(), robot.ycor()]
 	foodsense.setposition(robot.position())
-	
+	foodsense.hideturtle()
+	"""
+		TODO: Fix foodsense being drawn on top
+	"""
+	robot.shape()
+
 	# CHECK HUNGER
 	if hunger > 50:
 		intention_idx = FINDFOOD
@@ -272,7 +270,7 @@ while True:
 	if robotpos[POSX] == goal[POSX] and robotpos[POSY] == goal[POSY]:
 		if goal[IDLE] > 0:
 			goal[IDLE] -= 1
-			wn.delay(300)
+			sleep(0.001)
 		else:
 			reachgoal = True
 	elif robot.xcor() > goal[POSX]:
@@ -302,7 +300,7 @@ while True:
 				
 	last_state = [hunger, intention_idx]	
 	
-	wn.delay(100)
+	sleep(0.001)
 
 # Create keyboard bindings
 turtle.listen()
@@ -311,3 +309,4 @@ turtle.onkey(move_right, "Right")
 turtle.onkey(move_up, "Up")
 turtle.onkey(move_down, "Down")
 
+delay = raw_input("Press enter to finish")
