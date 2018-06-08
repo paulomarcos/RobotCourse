@@ -31,6 +31,7 @@ REDUCE_HUNGER = 60
 intention_idx = 0
 hunger = 25 #random.randint(0, 25) 
 hunger_radius = MIN_RADIUS
+intention_history = ["free walk", "free walk", "free walk"]
 
 # Set up the screen
 
@@ -153,7 +154,48 @@ def print_text(hunger, intention_idx):
 	print_pen.write(printstring, False, align="left", font=("Arial", 14, "normal"))
 	print_pen.hideturtle()
 
+print_history_pen = turtle.Turtle()
+print_history_pen.speed(0)
+print_history_pen.color("light grey")
+print_history_pen.penup()
+print_history_pen.setposition(380, 350)
 
+print_history_pen_two = turtle.Turtle()
+print_history_pen_two.speed(0)
+print_history_pen_two.color("grey")
+print_history_pen_two.penup()
+print_history_pen_two.setposition(380, 334)
+
+print_history_pen_three = turtle.Turtle()
+print_history_pen_three.speed(0)
+print_history_pen_three.color("dim gray")
+print_history_pen_three.penup()
+print_history_pen_three.setposition(380, 318)
+
+def print_history(intention_history):
+	print_history_pen.clear()
+	print_history_pen_two.clear()
+	print_history_pen_three.clear()
+	
+	printstring = intention_history[2]
+	print_history_pen.write(printstring, False, align="right", font=("Arial", 14, "normal"))
+	
+	printstring = intention_history[1]
+	print_history_pen_two.write(printstring, False, align="right", font=("Arial", 12, "normal"))
+	
+	printstring = intention_history[0]
+	print_history_pen_three.write(printstring, False, align="right", font=("Arial", 10, "normal"))
+	
+	print_history_pen.hideturtle()
+	print_history_pen_two.hideturtle()
+	print_history_pen_three.hideturtle()
+"""
+def print_history(intention_history):
+	print_history_pen.clear()
+	printstring = "["+intention_history[0]+", "+intention_history[1]+", "+intention_history[2]+"]"
+	print_history_pen.write(printstring, False, align="right", font=("Arial", 14, "normal"))
+	print_history_pen.hideturtle()
+"""
 # Find Apple
 def find_apple(robot, apples, goal, smell_sense):
 	for apple in apples:
@@ -226,13 +268,22 @@ def eat(hunger, intention_idx):
 				sleep(2.0/REDUCE_HUNGER)
 			apple.setposition(new_x, new_y)	
 			apple.showturtle()
+	print "EAT METHOD", intention[intention_idx], hunger
 	return hunger
 
 def check_collision(apples, robot):
 	for apple in apples:
 		if robot.distance(apple) == 0:
 			return True
-	return False 		
+	return False
+
+
+def update_history(idx, history):
+	if history[-1] != intention[idx]:
+		history.append(intention[idx])
+		history = history[1:]
+		print_history(history)
+	return history		
 
 # Initializing positions and intention
 something = 0
@@ -241,6 +292,7 @@ goal = free_walk(robotpos, foodsense)
 last_state = [0, 0]
 
 print_text(hunger, intention_idx)
+print_history(intention_history)
 	
 # Main loop
 while True:
@@ -250,7 +302,6 @@ while True:
 	"""
 		TODO: Fix foodsense being drawn on top
 	"""
-	robot.shape()
 
 	# CHECK HUNGER
 	if hunger > 50:
@@ -291,6 +342,7 @@ while True:
 	# UPDATE HUNGER AND INTENTION
 	if check_collision(apples, robot):
 		intention_idx = EAT
+		intention_history = update_history(intention_idx, intention_history)
 		hunger = eat(hunger, intention_idx)  
 	if intention_idx == FREEWALK:
 		hunger += 0.003
@@ -302,6 +354,7 @@ while True:
 	# PRINT INFO
 	if (floor(hunger) != floor(last_state[0])) or (intention_idx != last_state[1]) :
 		print_text(hunger, intention_idx)
+	intention_history = update_history(intention_idx, intention_history)
 				
 	last_state = [hunger, intention_idx]	
 	
