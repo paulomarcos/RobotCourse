@@ -3,7 +3,7 @@
 * Make a video in which one or more objects move as if they have intention
 * The intention must be based on the definition of Cohen's paper (Intend1 or Intend2)
 * Your agent must show at least three types of different behaviors based on Cohen's definition. The example should be explained based on the following items:
-	* Persistency (two conditions to drop a goal)
+	* Persistence (two conditions to drop a goal)
 	* Self Commitment
 	* Social Commitment
 * The lenght: longer than 1 minute
@@ -17,7 +17,7 @@
 * Explain the cover story for the video
 * Explain how the agent's intentional behaviors are based on Cohen's definition
 	* Modify Definition 8.1, 8.2, or 8.3 for your explanation and write the logical formula in your report
-* Explain how do you want me ti evaluate your video.
+* Explain how do you want me to evaluate your video.
 -----
 
 # The Project

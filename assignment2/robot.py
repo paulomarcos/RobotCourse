@@ -29,14 +29,25 @@ REDUCE_HUNGER = 60
 
 # Variables
 intention_idx = 0
-hunger = 25 #random.randint(0, 25) 
+hunger = 25 #random.randint(0, 25)
 hunger_radius = MIN_RADIUS
 intention_history = ["free walk", "free walk", "free walk"]
+
+# Register shapes
+turtle.register_shape("robot_top.gif")
+turtle.register_shape("robot_bot.gif")
+turtle.register_shape("robot_lef.gif")
+turtle.register_shape("robot_rig.gif")
+turtle.register_shape("apple.gif")
+#turtle.register_shape("grass.gif")
+turtle.register_shape("hole.gif")
+turtle.register_shape("water.gif")
 
 # Set up the screen
 
 wn = turtle.Screen()
 wn.bgcolor("black")
+wn.bgpic("grass_background.gif")
 wn.tracer(3)
 wn.screensize(800, 800)
 wn.title("Robot")
@@ -55,13 +66,21 @@ for side in range(4):
 	border_pen.lt(90)
 border_pen.hideturtle()
 
+# Create holes
+NUMBER_HOLES = 3
+holes = []
+for i in range(NUMBER_HOLES):
+	holes.append(turtle.Turtle())
 
-# Register shapes
-turtle.register_shape("robot_top.gif")
-turtle.register_shape("robot_bot.gif")
-turtle.register_shape("robot_lef.gif")
-turtle.register_shape("robot_rig.gif")
-turtle.register_shape("apple.gif")
+for hole in holes:
+	hole.color("red")
+	hole.shape("hole.gif")
+	hole.penup()
+	hole.speed(0)
+	randomY = random.randint(-350, 350)
+	randomX = random.randint(-350, 350)
+	hole.setposition(randomX, randomY)
+
 
 # Create the robot
 robot = turtle.Turtle()
@@ -76,8 +95,8 @@ NUMBER_APPLES = 3
 apples = []
 for i in range(NUMBER_APPLES):
 	apples.append(turtle.Turtle())
-	
-for apple in apples:	
+
+for apple in apples:
 	apple.color("red")
 	apple.shape("apple.gif")
 	apple.penup()
@@ -85,7 +104,7 @@ for apple in apples:
 	randomY = random.randint(-350, 350)
 	randomX = random.randint(-350, 350)
 	apple.setposition(randomX, randomY)
-	
+
 # Create food sense
 foodsense = turtle.Turtle()
 foodsense.color("gray14")
@@ -94,8 +113,7 @@ foodsense.penup()
 foodsense.resizemode("user")
 foodsense.speed(0)
 foodsense.shapesize(MIN_RADIUS / STAMP_SIZE)
-foodsense.setposition(0,-250)	
-
+foodsense.setposition(0,-250)
 
 # Move robot left
 def move_left():
@@ -106,7 +124,7 @@ def move_left():
 	if x < -380:
 		x = -380
 	robot.setx(x)
-	
+
 # Move robot right
 def move_right():
 	#robot.setheading(0)
@@ -127,7 +145,7 @@ def move_up():
 		y = 380
 	robot.sety(y)
 
-# Move robot down	
+# Move robot down
 def move_down():
 	#robot.setheading(270)
 	robot.shape("robot_bot.gif")
@@ -176,16 +194,16 @@ def print_history(intention_history):
 	print_history_pen.clear()
 	print_history_pen_two.clear()
 	print_history_pen_three.clear()
-	
+
 	printstring = intention_history[2]
 	print_history_pen.write(printstring, False, align="right", font=("Arial", 14, "normal"))
-	
+
 	printstring = intention_history[1]
 	print_history_pen_two.write(printstring, False, align="right", font=("Arial", 12, "normal"))
-	
+
 	printstring = intention_history[0]
 	print_history_pen_three.write(printstring, False, align="right", font=("Arial", 10, "normal"))
-	
+
 	print_history_pen.hideturtle()
 	print_history_pen_two.hideturtle()
 	print_history_pen_three.hideturtle()
@@ -266,7 +284,7 @@ def eat(hunger, intention_idx):
 				hunger -= 1
 				print_text(hunger, intention_idx)
 				sleep(2.0/REDUCE_HUNGER)
-			apple.setposition(new_x, new_y)	
+			apple.setposition(new_x, new_y)
 			apple.showturtle()
 	print "EAT METHOD", intention[intention_idx], hunger
 	return hunger
@@ -283,17 +301,17 @@ def update_history(idx, history):
 		history.append(intention[idx])
 		history = history[1:]
 		print_history(history)
-	return history		
+	return history
 
 # Initializing positions and intention
 something = 0
 robotpos = [robot.xcor(), robot.ycor()]
-goal = free_walk(robotpos, foodsense)	
+goal = free_walk(robotpos, foodsense)
 last_state = [0, 0]
 
 print_text(hunger, intention_idx)
 print_history(intention_history)
-	
+
 # Main loop
 while True:
 	robotpos = [robot.xcor(), robot.ycor()]
@@ -308,7 +326,7 @@ while True:
 		intention_idx = FINDFOOD
 	else:
 		intention_idx = FREEWALK
-	
+
 	if reachgoal and goal[IDLE] == 0:
 		if intention_idx == FINDFOOD:
 			goal = find_food(robotpos, foodsense)
@@ -316,12 +334,12 @@ while True:
 		elif goal[IDLE] == 0:
 			goal = free_walk(robotpos, foodsense)
 			reachgoal = False
-	
+
 	if intention_idx == FINDFOOD and not reachgoal:
 		goal = find_apple(robot, apples, goal, smell_sense = MAX_RADIUS)
 	elif intention_idx == FREEWALK and not reachgoal:
-		goal = find_apple(robot, apples, goal, smell_sense = MIN_RADIUS)		
-			
+		goal = find_apple(robot, apples, goal, smell_sense = MIN_RADIUS)
+
 	# MOVE TOWARDS A GOAL or WAIT
 	if robotpos[POSX] == goal[POSX] and robotpos[POSY] == goal[POSY]:
 		if goal[IDLE] > 0:
@@ -338,26 +356,26 @@ while True:
 			move_down()
 		elif robot.ycor() < goal[POSY]:
 			move_up()
-	
+
 	# UPDATE HUNGER AND INTENTION
 	if check_collision(apples, robot):
 		intention_idx = EAT
 		intention_history = update_history(intention_idx, intention_history)
-		hunger = eat(hunger, intention_idx)  
+		hunger = eat(hunger, intention_idx)
 	if intention_idx == FREEWALK:
 		hunger += 0.003
 	elif intention_idx == FINDFOOD:
 		hunger += 0.005
 	if hunger > 100:
 		hunger = 100
-		
+
 	# PRINT INFO
 	if (floor(hunger) != floor(last_state[0])) or (intention_idx != last_state[1]) :
 		print_text(hunger, intention_idx)
 	intention_history = update_history(intention_idx, intention_history)
-				
-	last_state = [hunger, intention_idx]	
-	
+
+	last_state = [hunger, intention_idx]
+
 	sleep(0.001)
 
 # Create keyboard bindings
