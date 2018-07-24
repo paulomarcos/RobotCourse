@@ -44,7 +44,6 @@ turtle.register_shape("hole.gif")
 turtle.register_shape("water.gif")
 
 # Set up the screen
-
 wn = turtle.Screen()
 wn.bgcolor("black")
 wn.bgpic("grass_background.gif")
@@ -66,6 +65,60 @@ for side in range(4):
 	border_pen.lt(90)
 border_pen.hideturtle()
 
+def check_collision(tiles, target):
+	for tile in tiles:
+		if target.distance(tile) == 0:
+			return True
+	return False
+
+def check_collision(tiles, target, threshold = 100):
+	for tile in tiles:
+		if target.distance(tile) < threshold:
+			return True
+	return False
+
+def generate_water_position(number_tiles):
+	idx = number_tiles
+	randomX = random.randint(0,7)
+	randomY = random.randint(0,7)
+	matrix = [ [0 for i in range(8)] for j in range(8)]
+	matrix[randomX][randomY] = 1
+	pos_list = []
+	pos_list.append([randomX, randomY])
+	idx -= 1
+	while idx > 0:
+		if randomX+1 < 8:
+			randomX += 1
+		elif randomY+1 < 8:
+			randomY += 1
+		elif randomX-1 > 0:
+			randomX -= 1
+		elif randomY-1 > 0:
+			randomY -= 1
+		matrix[randomX][randomY] = 1
+		pos_list.append([randomX, randomY])
+		idx -= 1
+	return pos_list
+
+# Create waters
+NUMBER_WATERS = random.randint(2, 4)
+position_list = generate_water_position(NUMBER_WATERS)
+print position_list
+waters = []
+for i in range(NUMBER_WATERS):
+	waters.append(turtle.Turtle())
+for water in waters:
+	water.color("blue")
+	water.shape("water.gif")
+	water.penup()
+	water.speed(0)
+	randomX = position_list[0][0] * 100 - 350
+	randomY = position_list[0][1] * 100 - 350
+	print randomX, randomY
+	water.setposition(randomX, randomY)
+	position_list = position_list[1:]
+	print position_list
+
 # Create holes
 NUMBER_HOLES = 3
 holes = []
@@ -73,14 +126,16 @@ for i in range(NUMBER_HOLES):
 	holes.append(turtle.Turtle())
 
 for hole in holes:
-	hole.color("red")
+	hole.color("brown")
 	hole.shape("hole.gif")
 	hole.penup()
 	hole.speed(0)
 	randomY = random.randint(-350, 350)
 	randomX = random.randint(-350, 350)
-	hole.setposition(randomX, randomY)
-
+	while check_collision(waters, hole, 100):
+		randomY = random.randint(-350, 350)
+		randomX = random.randint(-350, 350)
+		hole.setposition(randomX, randomY)
 
 # Create the robot
 robot = turtle.Turtle()
@@ -104,6 +159,10 @@ for apple in apples:
 	randomY = random.randint(-350, 350)
 	randomX = random.randint(-350, 350)
 	apple.setposition(randomX, randomY)
+	while check_collision(holes, apple, 100) and check_collision(waters, apple, 100):
+		randomY = random.randint(-350, 350)
+		randomX = random.randint(-350, 350)
+		apple.setposition(randomX, randomY)
 
 # Create food sense
 foodsense = turtle.Turtle()
@@ -154,7 +213,6 @@ def move_down():
 	if y < -380:
 		y = -380
 	robot.sety(y)
-
 
 # Create print pen
 print_pen = turtle.Turtle()
@@ -286,15 +344,8 @@ def eat(hunger, intention_idx):
 				sleep(2.0/REDUCE_HUNGER)
 			apple.setposition(new_x, new_y)
 			apple.showturtle()
-	print "EAT METHOD", intention[intention_idx], hunger
+	#print "EAT METHOD", intention[intention_idx], hunger
 	return hunger
-
-def check_collision(apples, robot):
-	for apple in apples:
-		if robot.distance(apple) == 0:
-			return True
-	return False
-
 
 def update_history(idx, history):
 	if history[-1] != intention[idx]:
