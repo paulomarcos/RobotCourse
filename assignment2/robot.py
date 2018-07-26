@@ -39,9 +39,27 @@ turtle.register_shape("robot_bot.gif")
 turtle.register_shape("robot_lef.gif")
 turtle.register_shape("robot_rig.gif")
 turtle.register_shape("apple.gif")
-#turtle.register_shape("grass.gif")
 turtle.register_shape("hole.gif")
 turtle.register_shape("water.gif")
+turtle.register_shape("snake.gif")
+
+turtle.register_shape("explosion-gif/frame_00_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_01_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_02_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_03_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_04_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_05_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_06_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_07_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_08_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_09_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_10_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_11_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_12_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_13_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_14_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_15_delay-0.01s.gif")
+turtle.register_shape("explosion-gif/frame_16_delay-0.01s.gif")
 
 # Set up the screen
 wn = turtle.Screen()
@@ -71,9 +89,9 @@ def check_collision(tiles, target):
 			return True
 	return False
 
-def check_collision(tiles, target, threshold = 100):
+def check_collision(tiles, target, threshold = 0):
 	for tile in tiles:
-		if target.distance(tile) < threshold:
+		if target.distance(tile) <= threshold:
 			return True
 	return False
 
@@ -132,10 +150,26 @@ for hole in holes:
 	hole.speed(0)
 	randomY = random.randint(-350, 350)
 	randomX = random.randint(-350, 350)
+	hole.setposition(randomX, randomY)
 	while check_collision(waters, hole, 100):
 		randomY = random.randint(-350, 350)
 		randomX = random.randint(-350, 350)
 		hole.setposition(randomX, randomY)
+
+# Create the snake
+snake = turtle.Turtle()
+snake.color("yellow")
+snake.shape("snake.gif")
+snake.penup()
+snake.speed(0)
+randomY = random.randint(-350, 350)
+randomX = random.randint(-350, 350)
+snake.setposition(randomX, randomY)
+while check_collision(waters, snake, 100) or check_collision(holes, snake, 100):
+	randomY = random.randint(-350, 350)
+	randomX = random.randint(-350, 350)
+	snake.setposition(randomX, randomY)
+
 
 # Create the robot
 robot = turtle.Turtle()
@@ -159,60 +193,64 @@ for apple in apples:
 	randomY = random.randint(-350, 350)
 	randomX = random.randint(-350, 350)
 	apple.setposition(randomX, randomY)
-	while check_collision(holes, apple, 100) and check_collision(waters, apple, 100):
+	while check_collision(holes, apple, 100) or check_collision(waters, apple, 100):
 		randomY = random.randint(-350, 350)
 		randomX = random.randint(-350, 350)
 		apple.setposition(randomX, randomY)
 
 # Create food sense
-foodsense = turtle.Turtle()
-foodsense.color("gray14")
-foodsense.shape("circle")
-foodsense.penup()
-foodsense.resizemode("user")
-foodsense.speed(0)
-foodsense.shapesize(MIN_RADIUS / STAMP_SIZE)
-foodsense.setposition(0,-250)
 
 # Move robot left
-def move_left():
+def move_left(target):
 	#robot.setheading(-180)
-	robot.shape("robot_lef.gif")
-	x = robot.xcor()
+	if target == robot:
+		robot.shape("robot_lef.gif")
+	x = target.xcor()
 	x -= robotspeed
 	if x < -380:
 		x = -380
-	robot.setx(x)
+	target.setx(x)
 
 # Move robot right
-def move_right():
-	#robot.setheading(0)
-	robot.shape("robot_rig.gif")
-	x = robot.xcor()
+def move_right(target):
+	#target.setheading(0)
+	if target == robot:
+		robot.shape("robot_rig.gif")
+	x = target.xcor()
 	x += robotspeed
 	if x > 380:
 		x = 380
-	robot.setx(x)
+	target.setx(x)
 
 # Move robot up
-def move_up():
-	#robot.setheading(90)
-	robot.shape("robot_top.gif")
-	y = robot.ycor()
+def move_up(target):
+	#target.setheading(90)
+	if target == robot:
+		robot.shape("robot_top.gif")
+	y = target.ycor()
 	y += robotspeed
 	if y > 380:
 		y = 380
-	robot.sety(y)
+	target.sety(y)
 
 # Move robot down
-def move_down():
-	#robot.setheading(270)
-	robot.shape("robot_bot.gif")
-	y = robot.ycor()
+def move_down(target):
+	#target.setheading(270)
+	if target == robot:
+		robot.shape("robot_bot.gif")
+	y = target.ycor()
 	y -= robotspeed
 	if y < -380:
 		y = -380
-	robot.sety(y)
+	target.sety(y)
+
+def trespass_perimeter(tile, targets, target_height = 100, target_width = 100):
+	for target in targets:
+		if (tile.xcor() >= target.xcor()) and (tile.ycor() >= target.ycor()):
+			if (tile.xcor() <= target.xcor()+target_width) and (tile.ycor() <= target.ycor()+target_height):
+				return True
+		else:
+			return False
 
 # Create print pen
 print_pen = turtle.Turtle()
@@ -232,19 +270,19 @@ def print_text(hunger, intention_idx):
 
 print_history_pen = turtle.Turtle()
 print_history_pen.speed(0)
-print_history_pen.color("light grey")
+print_history_pen.color("white")
 print_history_pen.penup()
 print_history_pen.setposition(380, 350)
 
 print_history_pen_two = turtle.Turtle()
 print_history_pen_two.speed(0)
-print_history_pen_two.color("grey")
+print_history_pen_two.color("white")
 print_history_pen_two.penup()
 print_history_pen_two.setposition(380, 334)
 
 print_history_pen_three = turtle.Turtle()
 print_history_pen_three.speed(0)
-print_history_pen_three.color("dim gray")
+print_history_pen_three.color("white")
 print_history_pen_three.penup()
 print_history_pen_three.setposition(380, 318)
 
@@ -280,12 +318,11 @@ def find_apple(robot, apples, goal, smell_sense):
 	return goal
 
 # Action for intentions
-def free_walk(robotpos, foodsense):
+def free_walk(robotpos):
 	distance = random.randint(40, 240)
 	direction = random.randint(1,4) # U R D L
-	idle = random.randint(500,1500)
+	idle = random.randint(250,750)
 	x_pos, y_pos = robotpos
-	foodsense.shapesize(MIN_RADIUS / STAMP_SIZE)
 	if direction == 1:
 		y_pos += distance
 		if y_pos > 380:
@@ -305,28 +342,17 @@ def free_walk(robotpos, foodsense):
 	goal = [x_pos, y_pos, idle]
 	return goal
 
-def find_food(robotpos, foodsense):
-	distance = random.randint(50, 170)
-	direction = random.randint(1,4) # U R D L
+def find_food(robotpos):
+	smallest_distance = 1000
+	if len(apples) <= 0:
+		goal = [0, 0, 0]
+		return goal
+	for apple in apples:
+		if smallest_distance > robot.distance(apple):
+			smallest_distance = robot.distance(apple)
+			x_pos = apple.xcor()
+			y_pos = apple.ycor()
 	idle = 0
-	x_pos, y_pos = robotpos
-	foodsense.shapesize(MAX_RADIUS / STAMP_SIZE)
-	if direction == 1:   # UP
-		y_pos += distance
-		if y_pos > 380:
-			y_pos = 380
-	elif direction == 3: # DOWN
-		y_pos -= distance
-		if y_pos < -380:
-			y_pos = -380
-	elif direction == 2: # RIGHT
-		x_pos += distance
-		if x_pos > 380:
-			x_pos = 380
-	else: 				 # LEFT
-		x_pos -= distance
-		if x_pos < -380:
-			x_pos = -380
 	goal = [x_pos, y_pos, idle]
 	return goal
 
@@ -342,9 +368,7 @@ def eat(hunger, intention_idx):
 				hunger -= 1
 				print_text(hunger, intention_idx)
 				sleep(2.0/REDUCE_HUNGER)
-			apple.setposition(new_x, new_y)
-			apple.showturtle()
-	#print "EAT METHOD", intention[intention_idx], hunger
+			apples.remove(apple)
 	return hunger
 
 def update_history(idx, history):
@@ -354,36 +378,118 @@ def update_history(idx, history):
 		print_history(history)
 	return history
 
+def explosion():
+	robot.shape("explosion-gif/frame_08_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_09_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_10_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_11_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_12_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_13_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_14_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_15_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_16_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_00_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_01_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_02_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_03_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_04_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_05_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_06_delay-0.01s.gif")
+	sleep(0.05)
+	robot.shape("explosion-gif/frame_07_delay-0.01s.gif")
+	sleep(0.05)
+	robot.hideturtle()
+
+def move_snake_2_goal(snake_goal):
+	if snake.xcor() > snake_goal[POSX]:
+		move_left(snake)
+	elif snake.xcor() < snake_goal[POSX]:
+		move_right(snake)
+	elif snake.xcor() == snake_goal[POSX]:
+		if snake.ycor() > snake_goal[POSY]:
+			move_down(snake)
+		elif snake.ycor() < snake_goal[POSY]:
+			move_up(snake)
+
 # Initializing positions and intention
 something = 0
 robotpos = [robot.xcor(), robot.ycor()]
-goal = free_walk(robotpos, foodsense)
+goal = free_walk(robotpos)
 last_state = [0, 0]
 
 print_text(hunger, intention_idx)
 print_history(intention_history)
 
+snakes = []
+snakes.append(snake)
+
+min_dist = 1000
+# SET SNAKE'S GOAL TO NEAREST APPLE
+for apple in apples:
+	if min_dist > snake.distance(apple):
+		min_dist = snake.distance(apple)
+		snake_goal = [apple.xcor(), apple.ycor()]
+
+sleep(1)
+
 # Main loop
 while True:
 	robotpos = [robot.xcor(), robot.ycor()]
-	foodsense.setposition(robot.position())
-	foodsense.hideturtle()
+
 	"""
-		TODO: Fix foodsense being drawn on top
+		TODO: Fix
 	"""
+	# COLLISION CHECKING
+	"""if check_collision(waters, robot, 50):
+		explosion()
+	elif check_collision(holes, robot):
+		explosion()
+	elif check_collision(snakes, robot, 10):
+		explosion()
+"""
+	if trespass_perimeter(robot, waters) or \
+	trespass_perimeter(robot, holes) or \
+	trespass_perimeter(robot, snakes, 80, 90):
+		explosion()
+
+	# MOVE SNAKE
+	if snake.ycor() > robot.ycor():
+		if abs(snake.xcor() -robot.xcor()) <= 10 and abs(snake.distance(robot) < 200):
+			move_down(snake)
+		else:
+			move_snake_2_goal(snake_goal)
+	else:
+		move_snake_2_goal(snake_goal)
 
 	# CHECK HUNGER
-	if hunger > 50:
+	if hunger >= 100:
+		explosion()
+	elif hunger > 50 and hunger < 100:
 		intention_idx = FINDFOOD
 	else:
 		intention_idx = FREEWALK
 
 	if reachgoal and goal[IDLE] == 0:
 		if intention_idx == FINDFOOD:
-			goal = find_food(robotpos, foodsense)
+			goal = find_food(robotpos)
 			reachgoal = False
 		elif goal[IDLE] == 0:
-			goal = free_walk(robotpos, foodsense)
+			goal = free_walk(robotpos)
 			reachgoal = False
 
 	if intention_idx == FINDFOOD and not reachgoal:
@@ -399,14 +505,14 @@ while True:
 		else:
 			reachgoal = True
 	elif robot.xcor() > goal[POSX]:
-		move_left()
+		move_left(robot)
 	elif robot.xcor() < goal[POSX]:
-		move_right()
+		move_right(robot)
 	elif robot.xcor() == goal[POSX]:
 		if robot.ycor() > goal[POSY]:
-			move_down()
+			move_down(robot)
 		elif robot.ycor() < goal[POSY]:
-			move_up()
+			move_up(robot)
 
 	# UPDATE HUNGER AND INTENTION
 	if check_collision(apples, robot):
