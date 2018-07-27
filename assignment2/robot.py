@@ -26,6 +26,10 @@ MIN_RADIUS = 80
 MAX_RADIUS = 200
 STAMP_SIZE = 20
 REDUCE_HUNGER = 60
+ROBOT_HEIGHT = 28
+ROBOT_WIDTH = 23
+SNAKE_HEIGHT = 85
+SNAKE_WIDTH = 75
 
 # Variables
 intention_idx = 0
@@ -95,6 +99,89 @@ def check_collision(tiles, target, threshold = 0):
 			return True
 	return False
 
+def trespass_perimeter(targets, tile, target_height = None, target_width = None, tile_height = None, tile_width = None):
+	X = 0
+	Y = 1
+
+	if (target_height is None):
+		target_height = 100
+	if (target_width is None):
+		target_width = 100
+	if (tile_height is None):
+		tile_height = 100
+	if (tile_width is None):
+		tile_width = 100
+
+	for target in targets:
+		# ADJUST COORDINATES FROM CENTER TO BOTTOM LEFT
+		tile_x = tile.xcor() - int(tile_width / 2)
+		tile_y = tile.ycor() - int(tile_height / 2)
+		target_x = target.xcor() - int(target_width / 2)
+		target_y = target.ycor() - int(target_height / 2)
+
+		target_tl = (target_x, target_y + target_height)
+		target_br = (target_x + target_width, target_y)
+
+		tile_tl = (tile_x, tile_y + tile_height)
+		tile_br = (tile_x + tile_width, tile_y)
+
+		if (tile_tl[X] > target_br[X]) or (target_tl[X] > tile_br[X]):
+			return False
+
+		if (tile_tl[Y] < target_br[Y]) or (target_tl[Y] < tile_br[Y]):
+			return False
+
+		print target_height, target_width, tile_height, tile_width
+		DEBUGGER = False
+		if DEBUGGER:
+			ST = 1
+			ddb = turtle.Turtle()
+			ddb.ht()
+			ddb.circle(20)
+			ddb.color("brown")
+			ddb.st()
+			ddb.setposition(tile_x, tile_y)
+			ddb.pendown()
+			wn.update()
+			sleep(ST)
+
+			ddb.setposition(tile_x + tile_width, tile_y)
+			wn.update()
+			sleep(ST)
+
+			ddb.setposition(tile_x + tile_width, tile_y + tile_height)
+			wn.update()
+			sleep(ST)
+
+			ddb.setposition(tile_x, tile_y + tile_height)
+			wn.update()
+			sleep(ST)
+
+			ddb.penup()
+			ddb.color("purple")
+			ddb.st()
+			ddb.setposition(target_x, target_y)
+			ddb.pendown()
+			wn.update()
+			sleep(ST)
+
+			ddb.setposition(target_x + target_width, target_y)
+			wn.update()
+			sleep(ST)
+
+			ddb.setposition(target_x + target_width, target_y + target_height)
+			wn.update()
+			sleep(ST)
+
+			ddb.setposition(target_x, target_y + target_height)
+			wn.update()
+			sleep(ST)
+			ddb.ht()
+			ddb.penup()
+
+
+		return True
+
 def generate_water_position(number_tiles):
 	idx = number_tiles
 	randomX = random.randint(0,7)
@@ -119,7 +206,7 @@ def generate_water_position(number_tiles):
 	return pos_list
 
 # Create waters
-NUMBER_WATERS = random.randint(2, 4)
+NUMBER_WATERS = random.randint(1, 3)
 position_list = generate_water_position(NUMBER_WATERS)
 print position_list
 waters = []
@@ -138,7 +225,7 @@ for water in waters:
 	print position_list
 
 # Create holes
-NUMBER_HOLES = 3
+NUMBER_HOLES = 2
 holes = []
 for i in range(NUMBER_HOLES):
 	holes.append(turtle.Turtle())
@@ -151,7 +238,7 @@ for hole in holes:
 	randomY = random.randint(-350, 350)
 	randomX = random.randint(-350, 350)
 	hole.setposition(randomX, randomY)
-	while check_collision(waters, hole, 100):
+	while trespass_perimeter(waters, hole):
 		randomY = random.randint(-350, 350)
 		randomX = random.randint(-350, 350)
 		hole.setposition(randomX, randomY)
@@ -165,7 +252,7 @@ snake.speed(0)
 randomY = random.randint(-350, 350)
 randomX = random.randint(-350, 350)
 snake.setposition(randomX, randomY)
-while check_collision(waters, snake, 100) or check_collision(holes, snake, 100):
+while trespass_perimeter(waters, snake) or trespass_perimeter(holes, snake):
 	randomY = random.randint(-350, 350)
 	randomX = random.randint(-350, 350)
 	snake.setposition(randomX, randomY)
@@ -193,7 +280,8 @@ for apple in apples:
 	randomY = random.randint(-350, 350)
 	randomX = random.randint(-350, 350)
 	apple.setposition(randomX, randomY)
-	while check_collision(holes, apple, 100) or check_collision(waters, apple, 100):
+	while trespass_perimeter(holes, apple, 100, 100, 24, 27) or \
+	trespass_perimeter(waters, apple, 100, 100, 24, 27):
 		randomY = random.randint(-350, 350)
 		randomX = random.randint(-350, 350)
 		apple.setposition(randomX, randomY)
@@ -243,14 +331,6 @@ def move_down(target):
 	if y < -380:
 		y = -380
 	target.sety(y)
-
-def trespass_perimeter(tile, targets, target_height = 100, target_width = 100):
-	for target in targets:
-		if (tile.xcor() >= target.xcor()) and (tile.ycor() >= target.ycor()):
-			if (tile.xcor() <= target.xcor()+target_width) and (tile.ycor() <= target.ycor()+target_height):
-				return True
-		else:
-			return False
 
 # Create print pen
 print_pen = turtle.Turtle()
@@ -343,6 +423,7 @@ def free_walk(robotpos):
 	return goal
 
 def find_food(robotpos):
+	search_animation()
 	smallest_distance = 1000
 	if len(apples) <= 0:
 		goal = [0, 0, 0]
@@ -379,39 +460,58 @@ def update_history(idx, history):
 	return history
 
 def explosion():
+	pos = (robot.xcor() + 60, robot.ycor() + 20)
+	robot.setposition(pos)
 	robot.shape("explosion-gif/frame_08_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_09_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_10_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_11_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_12_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_13_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_14_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_15_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_16_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_00_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_01_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_02_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_03_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_04_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_05_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_06_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.shape("explosion-gif/frame_07_delay-0.01s.gif")
+	wn.update()
 	sleep(0.05)
 	robot.hideturtle()
 
@@ -426,6 +526,57 @@ def move_snake_2_goal(snake_goal):
 		elif snake.ycor() < snake_goal[POSY]:
 			move_up(snake)
 
+def search_animation():
+	robot.shape("robot_lef.gif")
+	wn.update()
+	sleep(1)
+	robot.shape("robot_rig.gif")
+	wn.update()
+	sleep(1)
+	robot.shape("robot_bot.gif")
+	wn.update()
+	sleep(1)
+	robot.shape("robot_top.gif")
+	wn.update()
+	sleep(1)
+
+def draw_debugger(targets, color, target_width = 100, target_height = 100):
+	ST = 0.33
+	for target in targets:
+		target_x = target.xcor() - int(target_width / 2)
+		target_y = target.ycor() - int(target_height / 2)
+
+		ddb = turtle.Turtle()
+		ddb.ht()
+		ddb.circle(20)
+		ddb.color(color)
+		ddb.st()
+		ddb.setposition(target_x, target_y)
+		ddb.pendown()
+		wn.update()
+		sleep(ST)
+
+		ddb.setposition(target_x + target_width, target_y)
+		wn.update()
+		sleep(ST)
+
+		ddb.setposition(target_x + target_width, target_y + target_height)
+		wn.update()
+		sleep(ST)
+
+		ddb.setposition(target_x, target_y + target_height)
+		wn.update()
+		sleep(ST)
+
+		ddb.setposition(target_x, target_y)
+		wn.update()
+		sleep(ST)
+		ddb.ht()
+		ddb.penup()
+		#ddb.clear()
+
+
+
 # Initializing positions and intention
 something = 0
 robotpos = [robot.xcor(), robot.ycor()]
@@ -438,33 +589,33 @@ print_history(intention_history)
 snakes = []
 snakes.append(snake)
 
+robots = []
+robots.append(robot)
+
 min_dist = 1000
 # SET SNAKE'S GOAL TO NEAREST APPLE
 for apple in apples:
 	if min_dist > snake.distance(apple):
 		min_dist = snake.distance(apple)
-		snake_goal = [apple.xcor(), apple.ycor()]
+		snake_goal = [apple.xcor(), apple.ycor() + SNAKE_HEIGHT]
 
-sleep(1)
+sleep(0.7)
 
 # Main loop
 while True:
 	robotpos = [robot.xcor(), robot.ycor()]
 
-	"""
-		TODO: Fix
-	"""
 	# COLLISION CHECKING
-	"""if check_collision(waters, robot, 50):
-		explosion()
-	elif check_collision(holes, robot):
-		explosion()
-	elif check_collision(snakes, robot, 10):
-		explosion()
-"""
-	if trespass_perimeter(robot, waters) or \
-	trespass_perimeter(robot, holes) or \
-	trespass_perimeter(robot, snakes, 80, 90):
+	if trespass_perimeter(waters, robot, 100, 100, ROBOT_HEIGHT, ROBOT_WIDTH) or \
+	trespass_perimeter(holes, robot, 100, 100, ROBOT_HEIGHT, ROBOT_WIDTH) or \
+	trespass_perimeter(snakes, robot, SNAKE_HEIGHT, SNAKE_WIDTH, ROBOT_HEIGHT, ROBOT_WIDTH):
+		DEBUGGER = False
+		if DEBUGGER:
+			draw_debugger(robots, "red", ROBOT_HEIGHT, ROBOT_WIDTH)
+			draw_debugger(waters, "yellow", 100, 100)
+			draw_debugger(holes, "pink", 100, 100)
+			draw_debugger(snakes, "white", SNAKE_HEIGHT, SNAKE_WIDTH)
+
 		explosion()
 
 	# MOVE SNAKE
