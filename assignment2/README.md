@@ -24,6 +24,20 @@
 
 The following assignment was made using Python 2.7 for the course of DESIGN OF PHYSICALLY GROUNDED COMMUNICATION SYSTEM of the Graduate School of Open and Environmental Systems of Keio University.
 
+![Gif](https://raw.githubusercontent.com/paulomarcos/RobotCourse/master/assignment2/JTHEROBOT.gif)
+[Full video here](https://www.youtube.com/watch?v=swk8MAQbFo0)
+
 ### J, the Hungry Robot pt.2
 
-WIP
+The world has evolved and has now grass, water and holes. J is also a better version of himself since he is now able to see apples and go straight for them. However, not everything is good, a new creature has appeared and is waiting to ambush our iron friend: the Snake.
+
+The robot walks randomly on the world until it becomes hungry, which will make him to look around searching for the nearest apple. If the apple is close to the snake, J will then look for another apple.
+
+Installation:
+```
+$ git clone https://github.com/paulomarcos/RobotCourse.git
+$ cd RobotCourse/assignment2/
+$ python2 robot.py
+```
+
+OBS: I apologize for the EXTREMELY MESSY CODE. Enjoy!
