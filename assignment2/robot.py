@@ -33,7 +33,7 @@ SNAKE_WIDTH = 75
 
 # Variables
 intention_idx = 0
-hunger = 25 #random.randint(0, 25)
+hunger = 40 #random.randint(0, 25)
 hunger_radius = MIN_RADIUS
 intention_history = ["free walk", "free walk", "free walk"]
 
@@ -131,7 +131,6 @@ def trespass_perimeter(targets, tile, target_height = None, target_width = None,
 		if (tile_tl[Y] < target_br[Y]) or (target_tl[Y] < tile_br[Y]):
 			return False
 
-		print target_height, target_width, tile_height, tile_width
 		DEBUGGER = False
 		if DEBUGGER:
 			ST = 1
@@ -179,7 +178,6 @@ def trespass_perimeter(targets, tile, target_height = None, target_width = None,
 			ddb.ht()
 			ddb.penup()
 
-
 		return True
 
 def generate_water_position(number_tiles):
@@ -206,9 +204,8 @@ def generate_water_position(number_tiles):
 	return pos_list
 
 # Create waters
-NUMBER_WATERS = random.randint(1, 3)
+NUMBER_WATERS = random.randint(1, 2)
 position_list = generate_water_position(NUMBER_WATERS)
-print position_list
 waters = []
 for i in range(NUMBER_WATERS):
 	waters.append(turtle.Turtle())
@@ -219,13 +216,11 @@ for water in waters:
 	water.speed(0)
 	randomX = position_list[0][0] * 100 - 350
 	randomY = position_list[0][1] * 100 - 350
-	print randomX, randomY
 	water.setposition(randomX, randomY)
 	position_list = position_list[1:]
-	print position_list
 
 # Create holes
-NUMBER_HOLES = 2
+NUMBER_HOLES = 1
 holes = []
 for i in range(NUMBER_HOLES):
 	holes.append(turtle.Turtle())
@@ -286,11 +281,8 @@ for apple in apples:
 		randomX = random.randint(-350, 350)
 		apple.setposition(randomX, randomY)
 
-# Create food sense
-
 # Move robot left
 def move_left(target):
-	#robot.setheading(-180)
 	if target == robot:
 		robot.shape("robot_lef.gif")
 	x = target.xcor()
@@ -301,7 +293,6 @@ def move_left(target):
 
 # Move robot right
 def move_right(target):
-	#target.setheading(0)
 	if target == robot:
 		robot.shape("robot_rig.gif")
 	x = target.xcor()
@@ -312,7 +303,6 @@ def move_right(target):
 
 # Move robot up
 def move_up(target):
-	#target.setheading(90)
 	if target == robot:
 		robot.shape("robot_top.gif")
 	y = target.ycor()
@@ -323,7 +313,6 @@ def move_up(target):
 
 # Move robot down
 def move_down(target):
-	#target.setheading(270)
 	if target == robot:
 		robot.shape("robot_bot.gif")
 	y = target.ycor()
@@ -383,13 +372,7 @@ def print_history(intention_history):
 	print_history_pen.hideturtle()
 	print_history_pen_two.hideturtle()
 	print_history_pen_three.hideturtle()
-"""
-def print_history(intention_history):
-	print_history_pen.clear()
-	printstring = "["+intention_history[0]+", "+intention_history[1]+", "+intention_history[2]+"]"
-	print_history_pen.write(printstring, False, align="right", font=("Arial", 14, "normal"))
-	print_history_pen.hideturtle()
-"""
+
 # Find Apple
 def find_apple(robot, apples, goal, smell_sense):
 	for apple in apples:
@@ -598,7 +581,7 @@ for apple in apples:
 	if min_dist > snake.distance(apple):
 		min_dist = snake.distance(apple)
 		snake_goal = [apple.xcor(), apple.ycor() + SNAKE_HEIGHT]
-
+		snakes_apple = (apple.xcor(), apple.ycor())
 sleep(0.7)
 
 # Main loop
@@ -643,10 +626,15 @@ while True:
 			goal = free_walk(robotpos)
 			reachgoal = False
 
-	if intention_idx == FINDFOOD and not reachgoal:
-		goal = find_apple(robot, apples, goal, smell_sense = MAX_RADIUS)
-	elif intention_idx == FREEWALK and not reachgoal:
-		goal = find_apple(robot, apples, goal, smell_sense = MIN_RADIUS)
+	# CHECK IF THE APPLE IS CLOSE TO THE SNAKE
+	if intention_idx == FINDFOOD:
+		for apple in apples:
+			if apple.position() == snakes_apple:
+				if goal[POSX] == snakes_apple[POSX] and goal[POSY] == snakes_apple[POSY]:
+					if robot.distance(apple) <= 100:
+						sleep(3)
+						apples.remove(apple)
+						goal = find_food(robotpos)
 
 	# MOVE TOWARDS A GOAL or WAIT
 	if robotpos[POSX] == goal[POSX] and robotpos[POSY] == goal[POSY]:
@@ -685,12 +673,3 @@ while True:
 	last_state = [hunger, intention_idx]
 
 	sleep(0.001)
-
-# Create keyboard bindings
-turtle.listen()
-turtle.onkey(move_left, "Left")
-turtle.onkey(move_right, "Right")
-turtle.onkey(move_up, "Up")
-turtle.onkey(move_down, "Down")
-
-delay = raw_input("Press enter to finish")
